@@ -23,6 +23,28 @@
     outline-width: 0px;
 }
 
+.text-title {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    text-align: center;
+    margin-right: auto;
+    margin-left: auto;
+    padding: 18px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 3em;
+    font-weight: bold;
+    pointer-events: none;
+
+    @include respond-to('small') {
+        top: 114px !important; // same as .mapboxgl-zoom-controls smal
+        padding-top: 0px;
+        font-size: 2em;
+    }
+}
+
 #inner {
     display: flex;
     flex-direction: row;
@@ -103,10 +125,10 @@
 /* override mapbox styling */
 .mapboxgl-zoom-controls {
     right: 16px !important;
-    top: 69px !important;
+    top: 167px !important;
 
     @include respond-to('small') {
-        top: 66px !important;
+        top: 114px !important;
     }
 
     &:hover {

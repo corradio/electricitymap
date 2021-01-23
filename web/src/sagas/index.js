@@ -4,6 +4,7 @@ import {
   select,
   takeLatest,
 } from 'redux-saga/effects';
+import moment from 'moment';
 
 import thirdPartyServices from '../services/thirdparty';
 import { handleRequestError, protectedJsonRequest } from '../helpers/api';
@@ -14,6 +15,7 @@ import {
   getGfsTargetTimeAfter,
   fetchGfsForecast,
 } from '../helpers/gfs';
+import { TIMESCALE } from '../helpers/constants';
 
 function* fetchClientVersion() {
   try {
@@ -25,9 +27,13 @@ function* fetchClientVersion() {
 }
 
 function* fetchZoneHistory(action) {
-  const { zoneId } = action.payload;
+  const { zoneId, timescale } = action.payload;
   try {
-    const payload = yield call(protectedJsonRequest, `/v3/history?countryCode=${zoneId}`);
+    let path = `/v3/history?countryCode=${zoneId}`;
+    if (timescale !== TIMESCALE.LIVE) {
+      path += `&timescale=${timescale}`;
+    }
+    const payload = yield call(protectedJsonRequest, path);
     yield put({ type: 'ZONE_HISTORY_FETCH_SUCCEEDED', zoneId, payload });
   } catch (err) {
     yield put({ type: 'ZONE_HISTORY_FETCH_FAILED' });
@@ -36,9 +42,13 @@ function* fetchZoneHistory(action) {
 }
 
 function* fetchGridData(action) {
-  const { datetime } = action.payload;
+  const { datetime, timescale } = action.payload;
   try {
-    const payload = yield call(protectedJsonRequest, datetime ? `/v3/state?datetime=${datetime}` : '/v3/state');
+    let path = datetime ? `/v3/state?datetime=${datetime}` : '/v3/state';
+    if (timescale !== TIMESCALE.LIVE) {
+      path += `?timescale=${timescale}_${moment().startOf('month').subtract(1, 'month').format('YYYYMM')}`;
+    }
+    const payload = yield call(protectedJsonRequest, path);
     yield put({ type: 'TRACK_EVENT', payload: { eventName: 'pageview' } });
     yield put({ type: 'APPLICATION_STATE_UPDATE', key: 'callerLocation', value: payload.callerLocation });
     yield put({ type: 'APPLICATION_STATE_UPDATE', key: 'callerZone', value: payload.callerZone });

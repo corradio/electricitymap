@@ -17,7 +17,6 @@ import {
 } from '../hooks/redux';
 import { useCo2ColorScale } from '../hooks/theme';
 import { getTooltipPosition } from '../helpers/graph';
-import { modeOrder, modeColor, DEFAULT_FLAG_SIZE } from '../helpers/constants';
 import {
   getElectricityProductionValue,
   getProductionCo2Intensity,
@@ -25,6 +24,9 @@ import {
 } from '../helpers/zonedata';
 import { flagUri } from '../helpers/flags';
 import { __ } from '../helpers/translation';
+import {
+  modeOrder, modeColor, TIMESCALE, DEFAULT_FLAG_SIZE,
+} from '../helpers/constants';
 
 import CountryPanelProductionTooltip from './tooltips/countrypanelproductiontooltip';
 import CountryPanelExchangeTooltip from './tooltips/countrypanelexchangetooltip';
@@ -39,12 +41,15 @@ const RECT_OPACITY = 0.8;
 const X_AXIS_HEIGHT = 15;
 const SCALE_TICKS = 4;
 
-const getProductionData = data => modeOrder.map((mode) => {
+const getProductionData = (data, timescale) => modeOrder.map((mode) => {
   const isStorage = mode.indexOf('storage') !== -1;
   const resource = mode.replace(' storage', '');
 
   // Power in MW
-  const capacity = (data.capacity || {})[mode];
+  // Do not show capacity if timescale != live
+  const capacity = timescale === TIMESCALE.LIVE
+    ? (data.capacity || {})[mode]
+    : null;
   const production = (data.production || {})[resource];
   const storage = (data.storage || {})[resource];
 
@@ -63,12 +68,14 @@ const getProductionData = data => modeOrder.map((mode) => {
   };
 });
 
-const getExchangeData = (data, exchangeKeys, electricityMixMode) => exchangeKeys.map((mode) => {
+const getExchangeData = (data, exchangeKeys, electricityMixMode, timescale) => exchangeKeys.map((mode) => {
   // Power in MW
   const exchange = (data.exchange || {})[mode];
-  const exchangeCapacityRange = (data.exchangeCapacities || {})[mode];
+  // Do not show capacity if timescale != live
+  const exchangeCapacityRange = timescale === TIMESCALE.LIVE
+    ? (data.exchangeCapacities || {})[mode]
+    : null;
 
-  // Exchange CO₂ intensity
   const gCo2eqPerkWh = getExchangeCo2Intensity(mode, data, electricityMixMode);
   const gCo2eqPerHour = gCo2eqPerkWh * 1e3 * exchange;
   const tCo2eqPerMin = gCo2eqPerHour / 1e6 / 60.0;
@@ -441,12 +448,14 @@ const mapStateToProps = state => ({
   displayByEmissions: state.application.tableDisplayEmissions,
   electricityMixMode: state.application.electricityMixMode,
   isMobile: state.application.isMobile,
+  timescale: state.application.timescale,
 });
 
 const CountryTable = ({
   displayByEmissions,
   electricityMixMode,
   isMobile,
+  timescale,
 }) => {
   const { ref, width } = useRefWidthHeightObserver();
 
@@ -454,12 +463,12 @@ const CountryTable = ({
   const data = useCurrentZoneData();
 
   const productionData = useMemo(
-    () => getProductionData(data),
-    [data],
+    () => getProductionData(data, timescale),
+    [data, timescale],
   );
   const exchangeData = useMemo(
-    () => getExchangeData(data, exchangeKeys, electricityMixMode),
-    [data, exchangeKeys, electricityMixMode],
+    () => getExchangeData(data, exchangeKeys, electricityMixMode, timescale),
+    [data, exchangeKeys, electricityMixMode, timescale],
   );
 
   const [productionTooltip, setProductionTooltip] = useState(null);

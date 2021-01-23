@@ -1,6 +1,7 @@
 import { combineReducers } from 'redux';
 
 import { getKey } from '../helpers/storage';
+import { TIMESCALE } from '../helpers/constants';
 import { isLocalhost, isProduction } from '../helpers/environment';
 
 import dataReducer from './dataReducer';
@@ -47,6 +48,7 @@ const initialApplicationState = {
     zoom: 1.5,
   },
   onboardingSeen: cookieGetBool('onboardingSeen', false),
+  timescale: TIMESCALE.LIVE,
   searchQuery: null,
   selectedZoneTimeIndex: null,
   solarColorbarValue: null,

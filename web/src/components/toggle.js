@@ -32,8 +32,9 @@ const Options = styled.div`
   display: flex;
   flex-direction: row;
   height: 28px;
-  justify-content: flex-end;
+  justify-content: space-between;
   margin: 0 4px;
+  flex-grow: 1;
 `;
 
 const OptionItem = styled.div`
@@ -43,6 +44,8 @@ const OptionItem = styled.div`
   padding: 0 12px;
   transition: all 0.4s;
   z-index: 9;
+  flex-grow: 1;
+  text-align: center;
 
   ${props => props.active && css`
     background: #ffffff;

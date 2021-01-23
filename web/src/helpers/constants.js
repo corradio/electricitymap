@@ -33,6 +33,10 @@ const STORAGE_MODES = modeOrder.filter(d => d.indexOf('storage') !== -1).map(d =
 
 const DEFAULT_FLAG_SIZE = 16;
 
+const TIMESCALE = {
+  LIVE: 'LIVE',
+  MONTHLY: 'MONTHLY',
+};
 const DATA_FETCH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 module.exports = {
@@ -41,5 +45,6 @@ module.exports = {
   PRODUCTION_MODES,
   STORAGE_MODES,
   DEFAULT_FLAG_SIZE,
+  TIMESCALE,
   DATA_FETCH_INTERVAL,
 };

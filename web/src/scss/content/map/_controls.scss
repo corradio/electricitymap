@@ -1,7 +1,7 @@
 .layer-buttons-container {
     position: absolute;
     right: 16px;
-    top: 151px;
+    top: 248px;
     display: flex;
     flex-direction: column;
 
@@ -10,7 +10,7 @@
     }
 
     @include respond-to('small') {
-        top: 148px;   
+        top: 195px;   
     }
 }
 
@@ -43,6 +43,10 @@
 
     @include respond-to('small') {
         top: 16px;
+    }
+
+    > div:not(:last-child) {
+        margin-bottom: 12px;
     }
 }
 

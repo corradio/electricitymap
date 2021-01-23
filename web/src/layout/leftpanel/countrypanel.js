@@ -34,6 +34,7 @@ import { useCo2ColorScale } from '../../hooks/theme';
 import { useTrackEvent } from '../../hooks/tracking';
 import { flagUri } from '../../helpers/flags';
 import { getFullZoneName, __ } from '../../helpers/translation';
+import { TIMESCALE } from '../../helpers/constants';
 
 // TODO: Move all styles from styles.css to here
 // TODO: Remove all unecessary id and class tags
@@ -74,10 +75,22 @@ const CountryRenewableGauge = (props) => {
   return <CircularGauge percentage={countryRenewablePercentage} {...props} />;
 };
 
+function formatDatetime(datetime, timescale) {
+  if (!datetime) { return ''; }
+  if (timescale === TIMESCALE.LIVE) {
+    return moment(datetime).format('LL LT');
+  }
+  if (timescale === TIMESCALE.MONTHLY) {
+    return `${moment(datetime).format('MMM YYYY')} average`;
+  }
+  throw new Error(`Unknown timescale "${timescale}" given`);
+}
+
 const mapStateToProps = state => ({
   electricityMixMode: state.application.electricityMixMode,
   isMobile: state.application.isMobile,
   tableDisplayEmissions: state.application.tableDisplayEmissions,
+  timescale: state.application.timescale,
   zones: state.data.grid.zones,
 });
 
@@ -85,6 +98,7 @@ const CountryPanel = ({
   electricityMixMode,
   isMobile,
   tableDisplayEmissions,
+  timescale,
   zones,
 }) => {
   const [tooltip, setTooltip] = useState(null);
@@ -131,6 +145,10 @@ const CountryPanel = ({
     ? data.co2intensity
     : data.co2intensityProduction;
 
+  const timescaleTranslationKey = timescale === TIMESCALE.MONTHLY
+    ? 'monthly'
+    : '24h';
+
   const switchToZoneEmissions = () => {
     dispatchApplication('tableDisplayEmissions', true);
     trackEvent('switchToCountryEmissions');
@@ -161,7 +179,7 @@ const CountryPanel = ({
                   {getFullZoneName(zoneId)}
                 </div>
                 <div className="country-time">
-                  {datetime ? moment(datetime).format('LL LT') : ''}
+                  {formatDatetime(datetime, timescale)}
                 </div>
               </div>
             </div>
@@ -238,7 +256,11 @@ const CountryPanel = ({
             <hr />
             <div className="country-history">
               <span className="country-history-title">
-                {__(tableDisplayEmissions ? 'country-history.emissions24h' : 'country-history.carbonintensity24h')}
+                {__(
+                  tableDisplayEmissions
+                    ? `country-history.emissions${timescaleTranslationKey}`
+                    : `country-history.carbonintensity${timescaleTranslationKey}`,
+                )}
               </span>
               <br />
               <small className="small-screen-hidden">
@@ -252,8 +274,8 @@ const CountryPanel = ({
 
               <span className="country-history-title">
                 {tableDisplayEmissions
-                  ? __(`country-history.emissions${electricityMixMode === 'consumption' ? 'origin' : 'production'}24h`)
-                  : __(`country-history.electricity${electricityMixMode === 'consumption' ? 'origin' : 'production'}24h`)
+                  ? __(`country-history.emissions${electricityMixMode === 'consumption' ? 'origin' : 'production'}${timescaleTranslationKey}`)
+                  : __(`country-history.electricity${electricityMixMode === 'consumption' ? 'origin' : 'production'}${timescaleTranslationKey}`)
                 }
               </span>
               <br />
@@ -265,7 +287,7 @@ const CountryPanel = ({
               {isLoadingHistories ? <LoadingPlaceholder height="11.2em" /> : <CountryHistoryMixGraph />}
 
               <span className="country-history-title">
-                {__('country-history.electricityprices24h')}
+                {__(`country-history.electricityprices${timescaleTranslationKey}`)}
               </span>
               {/* TODO: Make the loader part of AreaGraph component with inferred height */}
               {isLoadingHistories ? <LoadingPlaceholder height="7.2em" /> : <CountryHistoryPricesGraph />}

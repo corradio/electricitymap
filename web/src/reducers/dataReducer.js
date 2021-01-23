@@ -1,12 +1,20 @@
 const { isEmpty } = require('lodash');
 const moment = require('moment');
 
-const { modeOrder } = require('../helpers/constants');
 const constructTopos = require('../helpers/topos');
 const translation = require('../helpers/translation');
 
 const exchangesConfig = require('../../../config/exchanges.json');
 const zonesConfig = require('../../../config/zones.json');
+
+function computeZoneAggregates(zone) {
+  zone.maxProduction = Math.max(...Object.values(zone.production || {}));
+  zone.maxDischarge = -Math.min(Math.min(...Object.values(zone.storage || {})), 0);
+  zone.maxStorage = Math.max(Math.max(...Object.values(zone.storage || {})), 0);
+  zone.maxExport = -Math.min(Math.min(...Object.values(zone.exchange || {})), 0);
+  zone.maxImport = Math.max(Math.max(...Object.values(zone.exchange || {})), 0);
+  return zone;
+}
 
 // ** Prepare initial zone data
 const zones = constructTopos();
@@ -54,6 +62,15 @@ const initialDataState = {
 
 module.exports = (state = initialDataState, action) => {
   switch (action.type) {
+    case 'APPLICATION_STATE_UPDATE': {
+      // Reset histories if timescale changes
+      const { key } = action;
+      if (key === 'timescale') {
+        return { ...state, histories: {} };
+      }
+      return state;
+    }
+
     case 'GRID_DATA_FETCH_REQUESTED': {
       return { ...state, hasConnectionWarning: false, isLoadingGrid: true };
     }
@@ -86,7 +103,9 @@ module.exports = (state = initialDataState, action) => {
       Object.keys(newGrid.zones).forEach((key) => {
         const zone = Object.assign({}, newGrid.zones[key]);
         zone.co2intensity = undefined;
+        zone.co2intensityProduction = undefined;
         zone.exchange = {};
+        zone.exchangeCo2Intensities = {};
         zone.production = {};
         zone.productionCo2Intensities = {};
         zone.productionCo2IntensitySources = {};
@@ -97,7 +116,10 @@ module.exports = (state = initialDataState, action) => {
         newGrid.zones[key] = zone;
       });
       Object.keys(newGrid.exchanges).forEach((key) => {
-        newGrid.exchanges[key].netFlow = undefined;
+        const exchange = Object.assign({}, newGrid.exchanges[key]);
+        exchange.netFlow = undefined;
+        exchange.co2intensity = undefined;
+        newGrid.exchanges[key] = exchange;
       });
 
       // Populate with realtime country data
@@ -116,24 +138,7 @@ module.exports = (state = initialDataState, action) => {
         });
         // Set date
         zone.datetime = action.payload.datetime;
-        // Validate data
-        if (!zone.production) return;
-        modeOrder.forEach((mode) => {
-          if (mode === 'other' || mode === 'unknown' || !zone.datetime) { return; }
-          // Check missing values
-          // if (country.production[mode] === undefined && country.storage[mode] === undefined)
-          //    console.warn(`${key} is missing production or storage of ' + mode`);
-          // Check validity of production
-          if (zone.production[mode] !== undefined && zone.production[mode] < 0) {
-            console.warn(`${key} has negative production of ${mode}`);
-          }
-          // Check load factors > 1
-          if (zone.production[mode] !== undefined
-            && (zone.capacity || {})[mode] !== undefined
-            && zone.production[mode] > zone.capacity[mode]) {
-            console.warn(`${key} produces more than its capacity of ${mode}`);
-          }
-        });
+        computeZoneAggregates(zone);
       });
 
       // Populate exchange pairs for exchange layer
@@ -171,7 +176,7 @@ module.exports = (state = initialDataState, action) => {
         histories: {
           ...state.histories,
           [action.zoneId]: action.payload.map(datapoint => ({
-            ...datapoint,
+            ...computeZoneAggregates(datapoint),
             hasParser: true,
             // Exchange information is not shown in history observations without production data, as the percentages are incorrect
             exchange: isEmpty(datapoint.production) ? {} : datapoint.exchange,

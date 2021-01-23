@@ -40,7 +40,7 @@
         "addeditsource": "<a href=\"%s\" target=\"_blank\">add or edit source</a>",
         "helpfrom": "with help from",
         "noDataAtTimestamp": "Data is temporarily unavailable for the selected time",
-        "noLiveData": "Live data is temporarily unavailable for this area",
+        "noLiveData": "Data is temporarily unavailable for this area",
         "dataIsDelayed": "Data for this region can be up to %s hours delayed. Live data cannot be displayed.",
         "noParserInfo": "We do not yet have any information about this area.<br/> Want to help fix this? You can contribute by <a href=\"%s\" target=\"_blank\">adding area data</a>.",
         "now": "Now"
@@ -58,6 +58,13 @@
         "electricityorigin24h": "Origin of electricity in the last 24 hours",
         "electricityproduction24h": "Electricity production in the last 24 hours",
         "electricityprices24h": "Electricity prices in the last 24 hours",
+        "carbonintensitymonthly": "Carbon intensity in the last 5 years",
+        "emissionsmonthly": "Emissions in the last 5 years",
+        "emissionsoriginmonthly": "Origin of emissions in the last 5 years",
+        "emissionsproductionmonthly": "Emissions produced in the last 5 years",
+        "electricityoriginmonthly": "Origin of electricity in the last 5 years",
+        "electricityproductionmonthly": "Electricity production in the last 5 years",
+        "electricitypricesmonthly": "Electricity prices in the last 5 years",
         "Getdata": "Get hourly historical, live, and forecast data with electricityMap API"
     },
     "footer": {

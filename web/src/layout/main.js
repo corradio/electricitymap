@@ -3,6 +3,7 @@
 // TODO(olc): re-enable this rule
 
 import React from 'react';
+import moment from 'moment';
 import { connect, useDispatch } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 
@@ -29,6 +30,7 @@ import { dispatchApplication } from '../store';
 import OnboardingModal from '../components/onboardingmodal';
 import LoadingOverlay from '../components/loadingoverlay';
 import Toggle from '../components/toggle';
+import { TIMESCALE } from '../helpers/constants';
 
 // TODO: Move all styles from styles.css to here
 // TODO: Remove all unecessary id and class tags
@@ -38,6 +40,8 @@ const mapStateToProps = state => ({
   electricityMixMode: state.application.electricityMixMode,
   hasConnectionWarning: state.data.hasConnectionWarning,
   version: state.application.version,
+  timescale: state.application.timescale,
+  currentDate: (state.data.grid || {}).datetime,
 });
 
 const Main = ({
@@ -45,6 +49,8 @@ const Main = ({
   electricityMixMode,
   hasConnectionWarning,
   version,
+  timescale,
+  currentDate,
 }) => {
   const dispatch = useDispatch();
   const location = useLocation();
@@ -99,8 +105,28 @@ const Main = ({
                 ]}
                 value={electricityMixMode}
               />
+              <Toggle
+                onChange={value => dispatchApplication('timescale', value)}
+                options={[TIMESCALE.MONTHLY, TIMESCALE.LIVE].map((k) => {
+                  if (k === TIMESCALE.MONTHLY) {
+                    return { value: k, label: 'monthly historical' };
+                  }
+                  if (k === TIMESCALE.LIVE) {
+                    return { value: k, label: 'live' };
+                  }
+                  return { value: 'unknown', label: 'unknown' };
+                })}
+                value={timescale}
+              />
             </div>
             <LayerButtons />
+            {
+              timescale !== TIMESCALE.LIVE ? (
+                <div className="text-title" style={{ color: brightModeEnabled ? '#000' : '#fff' }}>
+                  {moment(currentDate).format('MMMM YYYY')}
+                </div>
+              ) : null
+            }
           </div>
 
           <div id="connection-warning" className={`flash-message ${hasConnectionWarning ? 'active' : ''}`}>

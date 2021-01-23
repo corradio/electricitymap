@@ -26,32 +26,34 @@ export function useConditionalZoneHistoryFetch() {
   const historyData = useCurrentZoneHistory();
   const customDatetime = useCustomDatetime();
   const dispatch = useDispatch();
+  const timescale = useSelector(state => state.application.timescale);
 
   // Fetch zone history data only if it's not there yet (and custom timestamp is not used).
   useEffect(() => {
     if (customDatetime) {
       console.error('Can\'t fetch history when a custom date is provided!');
     } else if (zoneId && isEmpty(historyData)) {
-      dispatch({ type: 'ZONE_HISTORY_FETCH_REQUESTED', payload: { zoneId } });
+      dispatch({ type: 'ZONE_HISTORY_FETCH_REQUESTED', payload: { zoneId, timescale } });
     }
-  }, [zoneId, historyData, customDatetime]);
+  }, [zoneId, historyData, customDatetime, timescale]);
 }
 
 export function useGridDataPolling() {
   const datetime = useCustomDatetime();
   const dispatch = useDispatch();
+  const timescale = useSelector(state => state.application.timescale);
 
   // After initial request, do the polling only if the custom datetime is not specified.
   useEffect(() => {
     let pollInterval;
-    dispatch({ type: 'GRID_DATA_FETCH_REQUESTED', payload: { datetime } });
+    dispatch({ type: 'GRID_DATA_FETCH_REQUESTED', payload: { datetime, timescale } });
     if (!datetime) {
       pollInterval = setInterval(() => {
-        dispatch({ type: 'GRID_DATA_FETCH_REQUESTED', payload: { datetime } });
+        dispatch({ type: 'GRID_DATA_FETCH_REQUESTED', payload: { datetime, timescale } });
       }, DATA_FETCH_INTERVAL);
     }
     return () => clearInterval(pollInterval);
-  }, [datetime]);
+  }, [datetime, timescale]);
 }
 
 export function useConditionalWindDataPolling() {
