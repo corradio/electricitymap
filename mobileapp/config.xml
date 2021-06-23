@@ -52,11 +52,7 @@
     <plugin name="cordova-plugin-globalization" spec="^1.11.0" />
     <plugin name="cordova-plugin-splashscreen" spec="^4.1.0" />
     <plugin name="cordova-plugin-statusbar" spec="^2.4.3" />
-    <plugin name="cordova-plugin-file" spec="^6.0.2" />
-    <plugin name="cordova-plugin-file-transfer" spec="^1.7.1" />
-    <plugin name="cordova-plugin-zip" spec="^3.1.0" />
     <plugin name="cordova-plugin-code-push" spec="^1.12.5" />
-    <plugin name="sentry-cordova" spec="^0.16.2" />
     <engine name="android" spec="^8.1.0" />
     <plugin name="cordova-plugin-firebase-analytics" spec="^4.1.2">
         <variable name="FIREBASE_VERSION" value="11.6.+" />
