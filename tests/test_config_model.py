@@ -1,16 +1,14 @@
 import unittest
 
-from electricitymap.contrib.config.model import load_model
+from electricitymap.contrib.config.model import CONFIG_MODEL
 
 
 class ConfigModelTestcase(unittest.TestCase):
     def test_pydantic_model(self):
-        config = load_model()
-
-        self.assertIn("DK-BHM->SE", config.exchanges.keys())
-        self.assertIn("US-NW-PSCO", config.zones.keys())
+        self.assertIn("DK-BHM->SE", CONFIG_MODEL.exchanges.keys())
+        self.assertIn("US-NW-PSCO", CONFIG_MODEL.zones.keys())
         self.assertIsNotNone(
-            config.zones["US-NW-PSCO"].parsers.get_function("production")
+            CONFIG_MODEL.zones["US-NW-PSCO"].parsers.get_function("production")
         )
 
 

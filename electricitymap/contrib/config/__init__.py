@@ -1,27 +1,29 @@
 import json
 from pathlib import Path
+from typing import Dict, List, NewType, Tuple
 
-CONFIG_DIR = Path(__file__).parent.parent.parent.parent.joinpath('config').resolve()
+ZoneKey = NewType("ZoneKey", str)
+Point = NewType("Point", Tuple[float, float])
+BoundingBox = NewType("BoundingBox", List[Point])
+
+CONFIG_DIR = Path(__file__).parent.parent.parent.parent.joinpath("config").resolve()
+
+# Read JOSN files
+ZONES_CONFIG = json.load(open(CONFIG_DIR.joinpath("zones.json")))
+EXCHANGES_CONFIG = json.load(open(CONFIG_DIR.joinpath("exchanges.json")))
+CO2EQ_PARAMETERS = json.load(open(CONFIG_DIR.joinpath("co2eq_parameters.json")))
 
 # Prepare zone bounding boxes
-ZONE_BOUNDING_BOXES = {}
-
-# Read parser import list from config jsons
-ZONES_CONFIG = json.load(open(CONFIG_DIR.joinpath('zones.json')))
-EXCHANGES_CONFIG = json.load(open(CONFIG_DIR.joinpath('exchanges.json')))
-
-# Read all zones
+ZONE_BOUNDING_BOXES: Dict[ZoneKey, BoundingBox] = {}
 for zone_id, zone_config in ZONES_CONFIG.items():
-    if 'bounding_box' in zone_config:
-        ZONE_BOUNDING_BOXES[zone_id] = zone_config['bounding_box']
+    if "bounding_box" in zone_config:
+        ZONE_BOUNDING_BOXES[zone_id] = zone_config["bounding_box"]
 
-ZONE_NEIGHBOURS = {}
+# Prepare zone neighbours
+ZONE_NEIGHBOURS: Dict[ZoneKey, List[ZoneKey]] = {}
 for k, v in EXCHANGES_CONFIG.items():
-    zone_names = k.split('->')
-    pairs = [
-        (zone_names[0], zone_names[1]),
-        (zone_names[1], zone_names[0])
-    ]
+    zone_names = k.split("->")
+    pairs = [(zone_names[0], zone_names[1]), (zone_names[1], zone_names[0])]
     for zone_name_1, zone_name_2 in pairs:
         if zone_name_1 not in ZONE_NEIGHBOURS:
             ZONE_NEIGHBOURS[zone_name_1] = set()
@@ -30,10 +32,9 @@ for k, v in EXCHANGES_CONFIG.items():
 for zone, neighbors in ZONE_NEIGHBOURS.items():
     ZONE_NEIGHBOURS[zone] = sorted(neighbors)
 
-CO2EQ_PARAMETERS = json.load(open(CONFIG_DIR.joinpath('co2eq_parameters.json')))
 
-def emission_factors(zone_key):
-    override = CO2EQ_PARAMETERS['emissionFactors']['zoneOverrides'].get(zone_key, {})
-    defaults = CO2EQ_PARAMETERS['emissionFactors']['defaults']
+def emission_factors(zone_key: ZoneKey):
+    override = CO2EQ_PARAMETERS["emissionFactors"]["zoneOverrides"].get(zone_key, {})
+    defaults = CO2EQ_PARAMETERS["emissionFactors"]["defaults"]
     merged = {**defaults, **override}
-    return dict([(k, (v or {}).get('value')) for (k, v) in merged.items()])
+    return dict([(k, (v or {}).get("value")) for (k, v) in merged.items()])
