@@ -18,8 +18,10 @@ import ButtonToggle from '../components/buttontoggle';
 export default () => {
   const windEnabled = useWindEnabled();
   const windToggledLocation = useWindToggledLocation();
+  const windDataError = useSelector(state => state.data.windDataError);
 
   const solarEnabled = useSolarEnabled();
+  const solarDataError = useSelector(state => state.data.solarDataError);
   const solarToggledLocation = useSolarToggledLocation();
 
   const brightModeEnabled = useSelector(state => state.application.brightModeEnabled);
@@ -35,6 +37,7 @@ export default () => {
         <ButtonToggle
           active={windEnabled}
           tooltip={__(windEnabled ? 'tooltips.hideWindLayer' : 'tooltips.showWindLayer')}
+          errorMessage={windDataError}
           icon="weather/wind"
         />
       </Link>
@@ -42,6 +45,7 @@ export default () => {
         <ButtonToggle
           active={solarEnabled}
           tooltip={__(solarEnabled ? 'tooltips.hideSolarLayer' : 'tooltips.showSolarLayer')}
+          errorMessage={solarDataError}
           icon="weather/sun"
         />
       </Link>
