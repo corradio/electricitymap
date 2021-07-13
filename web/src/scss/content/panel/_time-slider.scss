@@ -1,6 +1,6 @@
 .zone-time-slider {
     bottom: 0;
-    height: 65px;
+    height: 85px;
     padding: 0.25rem 1rem;
     background: transparent;
     width: 100%;
@@ -13,6 +13,13 @@
         width: 100%;
         height: 20px;
         margin: -6px 2px 0;
+        overflow: visible;
+    }
+
+    .time-slider-daylight-axis-container {
+        width: 100%;
+        height: 20px;
+        margin: 0 2px -12px;
         overflow: visible;
     }
 

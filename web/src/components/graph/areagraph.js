@@ -163,17 +163,6 @@ const AreaGraph = React.memo(({
 
   return (
     <svg height={height} ref={ref} style={{ overflow: 'visible' }}>
-      <TimeAxis
-        scale={timeScale}
-        transform={`translate(-1 ${containerHeight - 1})`}
-        className="x axis"
-      />
-      <ValueAxis
-        scale={valueScale}
-        label={valueAxisLabel}
-        width={containerWidth}
-        height={containerHeight}
-      />
       <GraphBackground
         timeScale={timeScale}
         valueScale={valueScale}
@@ -192,6 +181,17 @@ const AreaGraph = React.memo(({
         mouseOutHandler={layerMouseOutHandler}
         isMobile={isMobile}
         svgNode={node}
+      />
+      <TimeAxis
+        scale={timeScale}
+        transform={`translate(-1 ${containerHeight - 1})`}
+        className="x axis"
+      />
+      <ValueAxis
+        scale={valueScale}
+        label={valueAxisLabel}
+        width={containerWidth}
+        height={containerHeight}
       />
       <GraphHoverLine
         layers={layers}

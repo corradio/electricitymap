@@ -3,8 +3,11 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { keys, sortBy } from 'lodash';
+import { getSunrise, getSunset } from 'sunrise-sunset-js';
 
 import { useCustomDatetime } from './router';
+
+import { getCenteredZoneViewport } from '../helpers/map';
 
 export function useCurrentZoneHistory() {
   const { zoneId } = useParams();
@@ -70,7 +73,8 @@ export function useCurrentZoneData() {
 export function useCurrentZoneExchangeKeys() {
   // Use the whole history (which doesn't depend on timestamp)
   // and fallback on current zone data
-  const zoneHistory = useCurrentZoneHistory() || [useCurrentZoneData()];
+  const zoneHistory = useCurrentZoneHistory();
+  const currentZoneData = useCurrentZoneData();
   const isConsumption = useSelector(state => state.application.electricityMixMode === 'consumption');
 
   return useMemo(
@@ -79,12 +83,13 @@ export function useCurrentZoneExchangeKeys() {
         return [];
       }
       const exchangeKeys = new Set();
-      zoneHistory.forEach((zoneData) => {
+      const zoneHistoryOrCurrent = zoneHistory || [currentZoneData];
+      zoneHistoryOrCurrent.forEach((zoneData) => {
         keys(zoneData.exchange).forEach(k => exchangeKeys.add(k));
       });
       return sortBy(Array.from(exchangeKeys));
     },
-    [isConsumption, zoneHistory],
+    [isConsumption, zoneHistory, currentZoneData],
   );
 }
 
@@ -101,4 +106,46 @@ export function useSmallLoaderVisible() {
   const solarLoading = useSelector(state => state.data.isLoadingSolar);
   const windLoading = useSelector(state => state.data.isLoadingWind);
   return gridLoading || solarLoading || windLoading;
+}
+
+export function useCurrentNightTimes() {
+  const { zoneId } = useParams();
+  const zone = useSelector(state => state.data.grid.zones[zoneId]);
+  const datetimeStr = useSelector(state => state.data.grid.datetime);
+  const history = useCurrentZoneHistory();
+
+  return useMemo(() => {
+    if (!zone || !datetimeStr || !history || !history[0]) {
+      return [];
+    }
+    const { latitude, longitude } = getCenteredZoneViewport(zone);
+    const nightTimes = [];
+    let baseDatetime = moment(datetimeStr).startOf('day').toDate();
+    const earliest = history && history[0] && new Date(history[0].stateDatetime);
+    const latest = new Date((history && history[history.length - 1])
+      ? history[history.length - 1].stateDatetime
+      : datetimeStr);
+    do {
+      // Get last nightTime
+      const nightStart = getSunset(latitude, longitude, baseDatetime);
+      let nightEnd = getSunrise(latitude, longitude, baseDatetime);
+      // Due to some bug in the library, sometimes we get nightStart > nightEnd
+      if (nightStart.getTime() > nightEnd.getTime()) {
+        nightEnd = moment(nightEnd).add(1, 'day').toDate();
+      }
+      // Ignore nights that start after the latest time we have
+      // or that finish before the earliest time we have
+      if (nightStart.getTime() < latest.getTime() && nightEnd.getTime() > earliest.getTime()) {
+        nightTimes.push([nightStart, nightEnd]);
+      }
+
+      // Abort at the first night that starts before our earliest time
+      if (nightStart.getTime() < earliest.getTime()) {
+        return nightTimes;
+      }
+
+      // Iterate to previous day
+      baseDatetime = moment(baseDatetime).subtract(1, 'day').toDate();
+    } while (true);
+  }, [zone, datetimeStr, history]);
 }
