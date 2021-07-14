@@ -30,11 +30,13 @@ export function useCurrentZoneHistoryDatetimes() {
 // the graph (when not inferable from historyData timestamps).
 export function useCurrentZoneHistoryEndTime() {
   const customDatetime = useCustomDatetime();
-  const gridDatetime = useSelector(state => (state.data.grid || {}).datetime);
+  const gridDatetime =
+    useSelector((state) => (state.data.grid || {}).datetime) ||
+    moment().subtract(2, 'hour').startOf('hour');
 
   return useMemo(
     () => moment(customDatetime || gridDatetime).format(),
-    [customDatetime, gridDatetime],
+    [customDatetime, gridDatetime]
   );
 }
 
